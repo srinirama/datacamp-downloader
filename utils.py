@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import json
 import re
 from classes import Track
+import time
 
 
 def download_track(track, folder, videos_download):
@@ -193,15 +194,64 @@ def get_completed_courses():
     global completed_courses
     if completed_courses is not None:
         return completed_courses
+    #profile = con.session.get(
+     #   'https://www.datacamp.com/profile/' + con.data['slug'])
     profile = con.session.get(
-        'https://www.datacamp.com/profile/' + con.data['slug'])
+           'https://www.datacamp.com/courses/intro-to-python-for-data-science?embedded=true')
     soup = BeautifulSoup(profile.text, 'html.parser')
-    courses_name = soup.findAll('h4', {'class': 'course-block__title'})
-    courses_link = soup.findAll('a', {'class': 'course-block__link ds-snowplow-link-course-block'})
+    #courses_name = soup.findAll('h4', {'class': 'course-block__title'})
+    #courses_link = soup.findAll('a', {'class': 'course-block__link ds-snowplow-link-course-block'})
+    #class="chapter__footer-btn dc-btn dc-btn--secondary ds-snowplow-link-course-continue-chapter"
+    #courses_name = soup.findAll('h4', {'class': 'chapter__title'})
+    #courses_link = soup.findAll('a', {'class': 'chapter__footer-btn dc-btn dc-btn--secondary ds-snowplow-link-course-continue-chapter'})
+    courses_name = soup.findAll('h4', 'chapter__title')
+    courses_link = soup.findAll('a', 'chapter__footer-btn dc-btn dc-btn--secondary ds-snowplow-link-course-continue-chapter')
+
     courses = []
     for i in range(len(courses_link)):
         link = 'https://www.datacamp.com' + courses_link[i]['href']
         courses.append(
             Track(i + 1, courses_name[i].getText().strip(), link))
     completed_courses = courses
+    return courses
+
+def get_all_courses():
+    global completed_courses
+    if completed_courses is not None:
+        return completed_courses
+    #profile = con.session.get(
+     #   'https://www.datacamp.com/profile/' + con.data['slug'])
+    seconds = 5
+    profile = con.session.get(
+           'https://learn.datacamp.com/courses/tech:shell?embedded=true')
+    #soup = BeautifulSoup(profile.text, 'html.parser')
+    __location__ = os.path.realpath(
+        os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+    soup = BeautifulSoup(open(os.path.join(__location__, 'course.html')), 'html.parser') # due to loading delay copied the contents to file and reading it
+    #courses_name = soup.findAll('h4', {'class': 'course-block__title'})
+    #courses_link = soup.findAll('a', {'class': 'course-block__link ds-snowplow-link-course-block'})
+    #class="chapter__footer-btn dc-btn dc-btn--secondary ds-snowplow-link-course-continue-chapter"
+    #courses_name = soup.findAll('h4', {'class': 'chapter__title'})
+    #courses_link = soup.findAll('a', {'class': 'chapter__footer-btn dc-btn dc-btn--secondary ds-snowplow-link-course-continue-chapter'})
+    #print(soup.find('html'))
+    #data_id = soup.find_all("article", {"data-id" : re.compile(".*")})#"article", {"data-id" : re.compile(".*")}
+    #data_id = soup.find_all("article")['data-id'] # "article", {"data-id" : re.compile(".*")}
+    #data_id = soup.find_all("article", {"data-id" : True})
+    #data_id= [x.get_attribute_list('some-attribute') for x in soup.find_all("article") if x.has_attr("data-id")]
+    data_id = [i.attrs["data-id"] for i in soup.find_all("article") if i.has_attr("data-id")]
+    print(data_id)
+    courses_name =[]
+    courses_link =[]
+    courses = []
+    print(len(data_id))
+    for x in range(len(data_id)):
+        course_json = con.session.get(
+            'https://campus-api.datacamp.com/api/courses/{}'.format(data_id[x])).json()
+        courses.append(
+            Track(x + 1,course_json['title'],course_json['link']))
+        print(course_json['title']+"    ,"+ course_json['link'])
+
+    completed_courses = courses
+    print(completed_courses)
     return courses

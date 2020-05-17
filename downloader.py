@@ -6,7 +6,7 @@ import colorama
 
 from config import Config as con
 from helper import bcolors
-from utils import download_course, download_track, get_completed_tracks, get_completed_courses
+from utils import download_course, download_track, get_completed_tracks, get_completed_courses, get_all_courses
 
 
 def main(argv):
@@ -49,7 +49,21 @@ def main(argv):
                         track = list(filter(lambda x: x.id == int(i),
                                             get_completed_courses()))[0]
                         download_course(track.link, path, v)
-
+        elif s == 'copy':
+            thread = threading.Thread(target=print_all_courses)
+            thread.start()
+            if print_waiting(thread):
+                if len(get_all_courses()) == 0:
+                    continue
+                (s, v) = wait_download()
+                if s is not None:
+                    path, nums = split_download_command(s)
+                    for i in nums:
+                        track = list(filter(lambda x: x.id == int(i),
+                                            get_all_courses()))[0]
+                        download_course(track.link, path, v)
+        elif s == 'exit':
+            sys.exit()
 
 def wait_download():
     while True:
@@ -102,6 +116,16 @@ def print_courses():
         sys.stdout.write(
             f'{bcolors.BKGREEN} {course.id}. {course.name}  {bcolors.BKENDC}\n')
 
+
+
+def print_all_courses():
+    courses = get_all_courses()
+    if len(courses) == 0:
+        sys.stdout.write(
+            f'{bcolors.FAIL} No courses found!  {bcolors.BKENDC}\n')
+    for course in courses:
+        sys.stdout.write(
+            f'{bcolors.BKGREEN} {course.id}. {course.name}  {bcolors.BKENDC}\n')
 
 def print_tracks():
     tracks = get_completed_tracks()

@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+api.txt
+
 # C extensions
 *.so
 
@@ -128,3 +130,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .idea/*
+
+
+excel-course.html
+tableau-course.html
+shell-course.html
+python-datacamp-courses.html
